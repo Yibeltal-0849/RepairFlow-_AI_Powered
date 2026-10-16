@@ -1,0 +1,831 @@
+/* ==========================================
+   DASHBOARD PAGE
+========================================== */
+
+.dashboard-page {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+
+  padding: 30px;
+
+  box-sizing: border-box;
+}
+
+
+/* ==========================================
+   HEADER
+========================================== */
+
+.dashboard-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  margin-bottom: 28px;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+
+  font-size: 26px;
+  font-weight: 700;
+
+  color: #111827;
+
+  letter-spacing: -0.5px;
+}
+
+.dashboard-header p {
+  margin: 7px 0 0;
+
+  font-size: 14px;
+
+  color: #475569;
+}
+
+.dashboard-date {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+
+  gap: 4px;
+}
+
+.date-label {
+  font-size: 11px;
+
+  color: #94a3b8;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.05em;
+}
+
+.dashboard-date strong {
+  font-size: 13px;
+
+  color: #475569;
+
+  font-weight: 600;
+}
+
+
+/* ==========================================
+   STATISTICS
+========================================== */
+
+.stats-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 18px;
+
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: #ffffff;
+
+  border: 1px solid #e5e7eb;
+
+  border-radius: 10px;
+
+  padding: 20px;
+
+  min-width: 0;
+
+  box-sizing: border-box;
+
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 8px 20px rgba(15, 23, 42, 0.06);
+}
+
+.stat-card-top {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+}
+
+.stat-icon {
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 8px;
+}
+
+.stat-icon.blue {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.stat-icon.orange {
+  background: #fff7ed;
+  color: #ea580c;
+}
+
+.stat-icon.purple {
+  background: #faf5ff;
+  color: #9333ea;
+}
+
+.stat-icon.green {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.stat-title {
+  font-size: 13px;
+
+  color: #64748b;
+
+  font-weight: 500;
+}
+
+.stat-value {
+  margin-top: 14px;
+
+  font-size: 30px;
+
+  line-height: 1;
+
+  font-weight: 700;
+
+  color: #111827;
+}
+
+.stat-footer {
+  display: flex;
+  align-items: center;
+
+  gap: 6px;
+
+  margin-top: 12px;
+}
+
+.stat-change {
+  font-size: 11px;
+
+  font-weight: 600;
+}
+
+.stat-change.blue,
+.stat-change.green {
+  color: #16a34a;
+}
+
+.stat-change.orange {
+  color: #ea580c;
+}
+
+.stat-change.purple {
+  color: #9333ea;
+}
+
+.stat-description {
+  font-size: 11px;
+
+  color: #94a3b8;
+}
+
+
+/* ==========================================
+   TWO COLUMN LAYOUT
+========================================== */
+
+.dashboard-two-column {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1.1fr)
+    minmax(0, 0.9fr);
+
+  gap: 20px;
+
+  margin-bottom: 20px;
+}
+
+
+/* ==========================================
+   GENERAL CARD
+========================================== */
+
+.dashboard-card {
+  background: #ffffff;
+
+  border: 1px solid #e5e7eb;
+
+  border-radius: 10px;
+
+  box-sizing: border-box;
+
+  overflow: hidden;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 20px 20px 16px;
+
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.card-header h2 {
+  margin: 0;
+
+  font-size: 15px;
+
+  font-weight: 650;
+
+  color: #1e293b;
+}
+
+.card-header p {
+  margin: 4px 0 0;
+
+  font-size: 11px;
+
+  color: #94a3b8;
+}
+
+.card-action {
+  border: none;
+
+  background: transparent;
+
+  color: #2563eb;
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  padding: 5px 7px;
+
+  border-radius: 5px;
+}
+
+.card-action:hover {
+  background: #eff6ff;
+}
+
+
+/* ==========================================
+   REPAIR OVERVIEW
+========================================== */
+
+.repair-status-list {
+  padding: 18px 20px 20px;
+}
+
+.repair-status-item {
+  margin-bottom: 17px;
+}
+
+.repair-status-item:last-child {
+  margin-bottom: 0;
+}
+
+.repair-status-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 7px;
+}
+
+.repair-status-info span {
+  font-size: 12px;
+
+  color: #64748b;
+}
+
+.repair-status-info strong {
+  font-size: 12px;
+
+  color: #334155;
+}
+
+.status-bar {
+  height: 7px;
+
+  background: #f1f5f9;
+
+  border-radius: 20px;
+
+  overflow: hidden;
+}
+
+.status-bar-fill {
+  height: 100%;
+
+  background: #3b82f6;
+
+  border-radius: inherit;
+
+  min-width: 5px;
+}
+
+
+/* ==========================================
+   AI DIAGNOSIS
+========================================== */
+
+.ai-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 28px;
+  height: 28px;
+
+  border-radius: 7px;
+
+  background: #faf5ff;
+
+  color: #9333ea;
+
+  font-size: 10px;
+
+  font-weight: 800;
+}
+
+.diagnosis-list {
+  padding: 5px 20px 10px;
+}
+
+.diagnosis-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 15px;
+
+  padding: 15px 0;
+
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.diagnosis-item:last-child {
+  border-bottom: none;
+}
+
+.diagnosis-main {
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+
+  min-width: 0;
+}
+
+.diagnosis-ticket {
+  font-size: 10px;
+
+  font-weight: 600;
+
+  color: #2563eb;
+}
+
+.diagnosis-main strong {
+  font-size: 12px;
+
+  color: #334155;
+}
+
+.diagnosis-main span {
+  font-size: 11px;
+
+  color: #94a3b8;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+}
+
+.diagnosis-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+
+  gap: 6px;
+
+  flex-shrink: 0;
+}
+
+.confidence {
+  font-size: 11px;
+
+  font-weight: 700;
+
+  color: #16a34a;
+}
+
+.review-button {
+  border: 1px solid #dbeafe;
+
+  background: #eff6ff;
+
+  color: #2563eb;
+
+  border-radius: 5px;
+
+  padding: 5px 9px;
+
+  font-size: 10px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.review-button:hover {
+  background: #dbeafe;
+}
+
+
+/* ==========================================
+   RECENT REPAIRS TABLE
+========================================== */
+
+.bottom-section {
+  align-items: stretch;
+}
+
+.repairs-table-wrapper {
+  overflow-x: auto;
+}
+
+.repairs-table {
+  width: 100%;
+
+  border-collapse: collapse;
+}
+
+.repairs-table th {
+  padding: 12px 20px;
+
+  background: #f8fafc;
+
+  text-align: left;
+
+  font-size: 10px;
+
+  font-weight: 700;
+
+  color: #94a3b8;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.04em;
+
+  white-space: nowrap;
+}
+
+.repairs-table td {
+  padding: 14px 20px;
+
+  border-top: 1px solid #f1f5f9;
+
+  font-size: 11px;
+
+  color: #64748b;
+
+  vertical-align: middle;
+}
+
+.ticket-number {
+  font-size: 11px;
+
+  color: #2563eb;
+
+  font-weight: 600;
+}
+
+.device-info {
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+.device-info strong {
+  font-size: 11px;
+
+  color: #334155;
+
+  font-weight: 600;
+}
+
+.device-info span {
+  font-size: 10px;
+
+  color: #94a3b8;
+}
+
+.repair-status-badge {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 5px;
+
+  padding: 5px 8px;
+
+  border-radius: 20px;
+
+  font-size: 10px;
+
+  font-weight: 600;
+
+  white-space: nowrap;
+}
+
+.badge-dot {
+  width: 5px;
+  height: 5px;
+
+  border-radius: 50%;
+
+  background: currentColor;
+}
+
+.repair-status-badge.diagnosing {
+  color: #9333ea;
+  background: #faf5ff;
+}
+
+.repair-status-badge.repairing {
+  color: #ea580c;
+  background: #fff7ed;
+}
+
+.repair-status-badge.received {
+  color: #2563eb;
+  background: #eff6ff;
+}
+
+.repair-status-badge.completed {
+  color: #16a34a;
+  background: #f0fdf4;
+}
+
+.repair-time {
+  white-space: nowrap;
+
+  color: #94a3b8 !important;
+}
+
+
+/* ==========================================
+   INVENTORY
+========================================== */
+
+.inventory-list {
+  padding: 7px 20px 10px;
+}
+
+.inventory-item {
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+
+  padding: 14px 0;
+
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.inventory-item:last-child {
+  border-bottom: none;
+}
+
+.inventory-warning {
+  width: 32px;
+  height: 32px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 7px;
+
+  background: #fff7ed;
+
+  color: #ea580c;
+}
+
+.inventory-info {
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+
+  min-width: 0;
+}
+
+.inventory-info strong {
+  font-size: 11px;
+
+  color: #334155;
+
+  font-weight: 600;
+}
+
+.inventory-info span {
+  font-size: 10px;
+
+  color: #94a3b8;
+}
+
+.inventory-level {
+  padding: 4px 7px;
+
+  border-radius: 5px;
+
+  background: #fff7ed;
+
+  color: #ea580c;
+
+  font-size: 9px;
+
+  font-weight: 700;
+}
+
+.inventory-level.critical {
+  background: #fef2f2;
+
+  color: #dc2626;
+}
+
+
+/* ==========================================
+   ACTIVITY
+========================================== */
+
+.activity-card {
+  margin-bottom: 30px;
+}
+
+.activity-list {
+  padding: 4px 20px 8px;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 13px 0;
+
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-icon {
+  width: 32px;
+  height: 32px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 7px;
+}
+
+.activity-icon.ai {
+  color: #9333ea;
+  background: #faf5ff;
+}
+
+.activity-icon.repair {
+  color: #2563eb;
+  background: #eff6ff;
+}
+
+.activity-icon.new {
+  color: #16a34a;
+  background: #f0fdf4;
+}
+
+.activity-icon.notification {
+  color: #ea580c;
+  background: #fff7ed;
+}
+
+.activity-content {
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+.activity-content strong {
+  font-size: 11px;
+
+  color: #334155;
+
+  font-weight: 600;
+}
+
+.activity-content span {
+  font-size: 10px;
+
+  color: #94a3b8;
+}
+
+.activity-time {
+  font-size: 10px;
+
+  color: #94a3b8;
+
+  white-space: nowrap;
+}
+
+
+/* ==========================================
+   RESPONSIVE
+========================================== */
+
+@media (max-width: 1200px) {
+
+  .stats-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-two-column {
+    grid-template-columns: 1fr;
+  }
+
+}
+
+
+@media (max-width: 700px) {
+
+  .dashboard-page {
+    padding: 20px 15px;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+
+    gap: 15px;
+  }
+
+  .dashboard-date {
+    align-items: flex-start;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .diagnosis-item {
+    align-items: flex-start;
+  }
+
+  .diagnosis-right {
+    align-items: flex-end;
+  }
+
+  .activity-item {
+    align-items: flex-start;
+  }
+
+  .activity-time {
+    display: none;
+  }
+
+}

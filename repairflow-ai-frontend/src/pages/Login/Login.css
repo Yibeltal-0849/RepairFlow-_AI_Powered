@@ -1,0 +1,263 @@
+/* =================================
+   REPAIRFLOW AI - Login Page
+   ================================= */
+
+.login-page {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 40px 20px;
+  box-sizing: border-box;
+
+  background: #f4f7fb;
+}
+
+/* Login Card */
+
+.login-card {
+  width: 100%;
+  max-width: 440px;
+
+  padding: 38px;
+
+  box-sizing: border-box;
+
+  background: #ffffff;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+/* Logo / Header */
+
+.login-logo {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.login-logo h1 {
+  margin: 0;
+
+  color: #2563eb;
+
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.login-logo p {
+  margin: 8px 0 0;
+
+  color: #64748b;
+
+  font-size: 14px;
+}
+
+/* Error Message */
+
+.login-error {
+  margin-bottom: 20px;
+
+  padding: 12px 14px;
+
+  border-radius: 8px;
+
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+
+  color: #b91c1c;
+
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Form */
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+
+  gap: 20px;
+}
+
+/* Labels */
+
+.login-form label {
+  display: flex;
+  flex-direction: column;
+
+  gap: 7px;
+
+  color: #334155;
+
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Inputs */
+
+.login-form input {
+  width: 100%;
+  height: 46px;
+
+  padding: 0 13px;
+
+  box-sizing: border-box;
+
+  background: #ffffff;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+
+  color: #0f172a;
+
+  font-size: 14px;
+
+  outline: none;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.login-form input::placeholder {
+  color: #94a3b8;
+}
+
+.login-form input:hover {
+  border-color: #94a3b8;
+}
+
+.login-form input:focus {
+  border-color: #2563eb;
+
+  box-shadow:
+    0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+/* Login Button */
+
+.login-button {
+  width: 100%;
+  height: 48px;
+
+  margin-top: 4px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #2563eb;
+  color: #ffffff;
+
+  font-size: 15px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.1s ease;
+}
+
+.login-button:hover:not(:disabled) {
+  background: #1d4ed8;
+
+  box-shadow:
+    0 5px 14px rgba(37, 99, 235, 0.25);
+}
+
+.login-button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.login-button:disabled {
+  background: #93c5fd;
+
+  cursor: not-allowed;
+
+  box-shadow: none;
+}
+
+/* Footer */
+
+.login-footer {
+  margin-top: 26px;
+
+  text-align: center;
+
+  color: #64748b;
+
+  font-size: 14px;
+}
+
+.login-footer a {
+  margin-left: 4px;
+
+  color: #2563eb;
+
+  font-weight: 600;
+
+  text-decoration: none;
+
+  transition: color 0.2s ease;
+}
+
+.login-footer a:hover {
+  color: #1d4ed8;
+
+  text-decoration: underline;
+}
+
+/* =================================
+   Responsive
+   ================================= */
+
+@media (max-width: 600px) {
+  .login-page {
+    padding: 24px 16px;
+
+    align-items: flex-start;
+  }
+
+  .login-card {
+    margin-top: 20px;
+
+    padding: 28px 22px;
+
+    border-radius: 12px;
+  }
+
+  .login-logo h1 {
+    font-size: 23px;
+  }
+
+  .login-logo p {
+    font-size: 13px;
+  }
+}
+
+/* Small phones */
+
+@media (max-width: 380px) {
+  .login-card {
+    padding: 24px 18px;
+  }
+
+  .login-form {
+    gap: 16px;
+  }
+
+  .login-form input {
+    height: 44px;
+  }
+
+  .login-button {
+    height: 46px;
+  }
+}

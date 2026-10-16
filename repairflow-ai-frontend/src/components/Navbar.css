@@ -1,0 +1,399 @@
+/* ================================
+   NAVBAR
+================================ */
+
+.navbar {
+  height: 70px;
+  width: 100%;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 28px;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  z-index: 1000;
+
+  box-sizing: border-box;
+}
+
+
+/* ================================
+   LEFT SIDE
+================================ */
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 38px;
+}
+
+
+/* ================================
+   BRAND
+================================ */
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  text-decoration: none;
+  color: #111827;
+}
+
+.brand-icon {
+  width: 38px;
+  height: 38px;
+
+  border-radius: 10px;
+
+  background: #2563eb;
+  color: #ffffff;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.brand-text {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.brand-name {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.brand-ai {
+  font-size: 18px;
+  font-weight: 800;
+  color: #2563eb;
+}
+
+
+/* ================================
+   SEARCH
+================================ */
+
+.navbar-search {
+  width: 350px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 0 12px;
+
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 9px;
+
+  color: #475569;
+}
+
+.navbar-search:focus-within {
+  border-color: #2563eb;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+}
+
+.navbar-search input {
+  flex: 1;
+
+  border: none;
+  outline: none;
+
+  background: transparent;
+
+  font-size: 14px;
+  color: #111827;
+}
+
+.navbar-search input::placeholder {
+  color: #94a3b8;
+}
+
+.search-shortcut {
+  font-size: 11px;
+  color: #94a3b8;
+
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+
+  padding: 3px 6px;
+  border-radius: 5px;
+
+  white-space: nowrap;
+}
+
+
+/* ================================
+   RIGHT SIDE
+================================ */
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+
+/* ================================
+   ICON BUTTON
+================================ */
+
+.navbar-icon-button {
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  position: relative;
+
+  color: #475569;
+
+  border-radius: 8px;
+
+  text-decoration: none;
+
+  transition: all 0.2s ease;
+}
+
+.navbar-icon-button:hover {
+  background: #f1f5f9;
+  color: #2563eb;
+}
+
+.notification-dot {
+  position: absolute;
+
+  width: 7px;
+  height: 7px;
+
+  top: 7px;
+  right: 7px;
+
+  background: #ef4444;
+
+  border: 2px solid #ffffff;
+
+  border-radius: 50%;
+}
+
+
+/* ================================
+   DIVIDER
+================================ */
+
+.navbar-divider {
+  width: 1px;
+  height: 30px;
+  background: #e5e7eb;
+}
+
+
+/* ================================
+   PROFILE
+================================ */
+
+.profile-container {
+  position: relative;
+}
+
+.profile-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  border: none;
+  background: transparent;
+
+  cursor: pointer;
+
+  padding: 5px 8px;
+
+  border-radius: 9px;
+
+  transition: background 0.2s ease;
+}
+
+.profile-button:hover {
+  background: #f8fafc;
+}
+
+.profile-avatar {
+  width: 36px;
+  height: 36px;
+
+  border-radius: 50%;
+
+  background: #dbeafe;
+  color: #1d4ed8;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.profile-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.profile-role {
+  font-size: 11px;
+  color: #475569;
+}
+
+.profile-chevron {
+  color: #475569;
+  transition: transform 0.2s ease;
+}
+
+.profile-chevron.rotate {
+  transform: rotate(180deg);
+}
+
+
+/* ================================
+   PROFILE DROPDOWN
+================================ */
+
+.profile-menu {
+  position: absolute;
+
+  top: calc(100% + 10px);
+  right: 0;
+
+  width: 190px;
+
+  background: #ffffff;
+
+  border: 1px solid #e5e7eb;
+
+  border-radius: 10px;
+
+  padding: 6px;
+
+  box-shadow:
+    0 10px 25px rgba(15, 23, 42, 0.08),
+    0 3px 8px rgba(15, 23, 42, 0.05);
+
+  animation: dropdownOpen 0.15s ease;
+}
+
+@keyframes dropdownOpen {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.profile-menu-item {
+  width: 100%;
+
+  display: block;
+
+  padding: 10px 12px;
+
+  border: none;
+  background: transparent;
+
+  text-decoration: none;
+
+  text-align: left;
+
+  font-size: 13px;
+  color: #374151;
+
+  border-radius: 7px;
+
+  cursor: pointer;
+
+  box-sizing: border-box;
+}
+
+.profile-menu-item:hover {
+  background: #f8fafc;
+  color: #2563eb;
+}
+
+.profile-menu-divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 5px 0;
+}
+
+.logout-button {
+  color: #dc2626;
+}
+
+.logout-button:hover {
+  color: #dc2626;
+  background: #fef2f2;
+}
+
+
+/* ================================
+   RESPONSIVE
+================================ */
+
+@media (max-width: 900px) {
+  .navbar-search {
+    width: 250px;
+  }
+
+  .profile-info {
+    display: none;
+  }
+}
+
+@media (max-width: 650px) {
+  .navbar {
+    padding: 0 15px;
+  }
+
+  .navbar-left {
+    gap: 15px;
+  }
+
+  .navbar-search {
+    display: none;
+  }
+
+  .brand-name {
+    display: none;
+  }
+}

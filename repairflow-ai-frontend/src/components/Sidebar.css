@@ -1,0 +1,261 @@
+/* ================================
+   SIDEBAR
+================================ */
+
+.sidebar {
+  position: fixed;
+
+  top: 70px;
+  left: 0;
+  bottom: 0;
+
+  width: 250px;
+
+  background: #ffffff;
+
+  border-right: 1px solid #e5e7eb;
+
+  display: flex;
+  flex-direction: column;
+
+  z-index: 900;
+
+  box-sizing: border-box;
+}
+
+
+/* ================================
+   CONTENT
+================================ */
+
+.sidebar-content {
+  flex: 1;
+
+  overflow-y: auto;
+
+  padding: 22px 14px;
+}
+
+.sidebar-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+
+
+/* ================================
+   SECTIONS
+================================ */
+
+.sidebar-section {
+  margin-bottom: 25px;
+}
+
+.sidebar-section-title {
+  padding: 0 12px;
+  margin-bottom: 8px;
+
+  font-size: 10px;
+  font-weight: 700;
+
+  letter-spacing: 0.08em;
+
+  color: #94a3b8;
+}
+
+
+/* ================================
+   NAVIGATION
+================================ */
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+
+/* ================================
+   NAVIGATION LINK
+================================ */
+
+.sidebar-link {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  height: 43px;
+
+  padding: 0 12px;
+
+  border-radius: 8px;
+
+  text-decoration: none;
+
+  color: #64748b;
+
+  font-size: 14px;
+  font-weight: 500;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.sidebar-link:hover {
+  background: #f8fafc;
+  color: #1e293b;
+}
+
+
+/* ================================
+   ACTIVE LINK
+================================ */
+
+.sidebar-link.active {
+  background: #eff6ff;
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.sidebar-link.active::before {
+  content: "";
+
+  position: absolute;
+
+  left: -14px;
+
+  width: 3px;
+  height: 24px;
+
+  background: #2563eb;
+
+  border-radius: 0 4px 4px 0;
+}
+
+
+/* ================================
+   ICON
+================================ */
+
+.sidebar-icon {
+  flex-shrink: 0;
+}
+
+.sidebar-link.active .sidebar-icon {
+  stroke-width: 2.2;
+}
+
+
+/* ================================
+   BOTTOM
+================================ */
+
+.sidebar-bottom {
+  padding: 14px;
+
+  border-top: 1px solid #e5e7eb;
+}
+
+
+/* ================================
+   SYSTEM STATUS
+================================ */
+
+.system-status {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 11px;
+
+  background: #f8fafc;
+
+  border: 1px solid #eef2f7;
+
+  border-radius: 9px;
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+
+  flex-shrink: 0;
+
+  background: #22c55e;
+
+  border-radius: 50%;
+}
+
+.status-title {
+  display: block;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  color: #334155;
+}
+
+.status-text {
+  display: block;
+
+  margin-top: 2px;
+
+  font-size: 10px;
+
+  color: #94a3b8;
+}
+
+
+/* ================================
+   RESPONSIVE
+================================ */
+
+@media (max-width: 900px) {
+
+  .sidebar {
+    width: 220px;
+  }
+
+}
+
+@media (max-width: 700px) {
+
+  .sidebar {
+    width: 70px;
+  }
+
+  .sidebar-section-title {
+    display: none;
+  }
+
+  .sidebar-link {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .sidebar-link span {
+    display: none;
+  }
+
+  .sidebar-link.active::before {
+    left: -14px;
+  }
+
+  .system-status {
+    justify-content: center;
+    padding: 12px 0;
+  }
+
+  .system-status > div {
+    display: none;
+  }
+
+}
