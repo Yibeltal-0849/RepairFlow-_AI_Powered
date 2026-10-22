@@ -34,6 +34,27 @@ CREATE TABLE IF NOT EXISTS customers (
     INDEX idx_customers_phone (phone)
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS telegram_link_tokens (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    customer_id BIGINT UNSIGNED NOT NULL,
+
+    token_hash CHAR(64) NOT NULL UNIQUE,
+
+    expires_at DATETIME NOT NULL,
+
+    used_at DATETIME NULL,
+
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    INDEX idx_telegram_link_customer (customer_id),
+
+    CONSTRAINT fk_telegram_link_customer
+        FOREIGN KEY (customer_id)
+        REFERENCES customers(customer_id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 -- 3. Repair tickets
 CREATE TABLE IF NOT EXISTS repairs (
     repair_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

@@ -1,7 +1,7 @@
+
 import { query } from "../config/db.js";
 import { runDiagnosis } from "../services/diagnosis.service.js";
 import { runShopManager } from "../services/shop-manager.service.js";
-
 
 /*
 |--------------------------------------------------------------------------
@@ -12,80 +12,196 @@ import { runShopManager } from "../services/shop-manager.service.js";
 export async function diagnoseRepair(req, res, next) {
   try {
     const {
+      ticket_number,
       repair_id,
       symptoms = "",
       previous_attempts = "",
       measurements = "",
-      additional_context = ""
+      additional_context = "",
     } = req.body || {};
 
-    if (!repair_id) {
+    /*
+    |--------------------------------------------------------------------------
+    | STEP 1: Validate the repair identifier
+    |--------------------------------------------------------------------------
+    | The frontend should send ticket_number.
+    | repair_id is still supported for backward compatibility.
+    */
+
+    const hasTicketNumber =
+      typeof ticket_number === "string" &&
+      ticket_number.trim().length > 0;
+
+    const hasRepairId =
+      repair_id !== undefined &&
+      repair_id !== null &&
+      repair_id !== "";
+
+    if (!hasTicketNumber && !hasRepairId) {
       return res.status(400).json({
         success: false,
-        message: "repair_id is required."
+        message: "Please provide a ticket_number.",
       });
     }
 
-    const repairs = await query(
-      `SELECT
-         repair_id,
-         ticket_number,
-         device_brand,
-         device_model,
-         reported_issue,
-         diagnosis_summary,
-         status
-       FROM repairs
-       WHERE repair_id = ?
-       LIMIT 1`,
-      [repair_id]
-    );
+    if (
+      ticket_number !== undefined &&
+      typeof ticket_number !== "string"
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "ticket_number must be a string.",
+      });
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | STEP 2: Find the repair in the database
+    |--------------------------------------------------------------------------
+    */
+
+    let repairs;
+
+    if (hasTicketNumber) {
+      // Look up the repair using its ticket number.
+      repairs = await query(
+        `SELECT
+           repair_id,
+           ticket_number,
+           device_brand,
+           device_model,
+           reported_issue,
+           diagnosis_summary,
+           status
+         FROM repairs
+         WHERE ticket_number = ?
+         LIMIT 1`,
+        [ticket_number.trim()]
+      );
+    } else {
+      // Backward-compatible lookup using numeric repair_id.
+      const numericRepairId = Number(repair_id);
+
+      if (
+        !Number.isSafeInteger(numericRepairId) ||
+        numericRepairId < 1
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "repair_id must be a positive integer.",
+        });
+      }
+
+      repairs = await query(
+        `SELECT
+           repair_id,
+           ticket_number,
+           device_brand,
+           device_model,
+           reported_issue,
+           diagnosis_summary,
+           status
+         FROM repairs
+         WHERE repair_id = ?
+         LIMIT 1`,
+        [numericRepairId]
+      );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | STEP 3: Check whether the repair exists
+    |--------------------------------------------------------------------------
+    */
 
     if (!repairs.length) {
       return res.status(404).json({
         success: false,
-        message: "Repair not found."
+        message: hasTicketNumber
+          ? `No repair found with ticket number "${ticket_number.trim()}".`
+          : `No repair found with ID "${repair_id}".`,
       });
     }
 
+    const repair = repairs[0];
+
+    /*
+    |--------------------------------------------------------------------------
+    | STEP 4: Validate symptoms
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+      typeof symptoms !== "string" ||
+      !symptoms.trim()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Please describe the repair symptoms.",
+      });
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | STEP 5: Run Gemini diagnosis
+    |--------------------------------------------------------------------------
+    | The service uses the internal numeric repair_id.
+    | The frontend does not need to know that number.
+    */
+
     const result = await runDiagnosis({
-      repairId: repair_id,
-      symptoms,
-      previousAttempts: previous_attempts,
-      measurements,
-      additionalContext: additional_context
+      repairId: repair.repair_id,
+      symptoms: symptoms.trim(),
+      previousAttempts:
+        typeof previous_attempts === "string"
+          ? previous_attempts.trim()
+          : "",
+      measurements:
+        typeof measurements === "string"
+          ? measurements.trim()
+          : "",
+      additionalContext:
+        typeof additional_context === "string"
+          ? additional_context.trim()
+          : "",
     });
 
-    res.status(201).json({
-      success: true,
+    /*
+    |--------------------------------------------------------------------------
+    | STEP 6: Return the diagnosis result
+    |--------------------------------------------------------------------------
+    */
 
+    return res.status(201).json({
+      success: true,
+      message:
+        "Gemini diagnosis generated successfully and is pending review.",
       data: {
         diagnosis_session_id:
           result.diagnosis_session_id,
 
+        repair_id: repair.repair_id,
+
+        ticket_number: repair.ticket_number,
+
         repair: {
-          repair_id: repairs[0].repair_id,
-          ticket_number: repairs[0].ticket_number,
-          device_brand: repairs[0].device_brand,
-          device_model: repairs[0].device_model,
-          reported_issue: repairs[0].reported_issue,
-          status: repairs[0].status
+          repair_id: repair.repair_id,
+          ticket_number: repair.ticket_number,
+          device_brand: repair.device_brand,
+          device_model: repair.device_model,
+          reported_issue: repair.reported_issue,
+          status: repair.status,
         },
 
         status: result.status,
 
         diagnosis: result.suggestions,
-
-        message:
-          "Gemini diagnosis generated successfully and is pending review."
-      }
+      },
     });
-
-  } catch (e) {
-    next(e);
+  } catch (error) {
+    next(error);
   }
 }
-
 
 /*
 |--------------------------------------------------------------------------
@@ -95,9 +211,7 @@ export async function diagnoseRepair(req, res, next) {
 
 export async function shopQuery(req, res, next) {
   try {
-    const {
-      question
-    } = req.body || {};
+    const { question } = req.body || {};
 
     /*
     |--------------------------------------------------------------------------
@@ -112,7 +226,7 @@ export async function shopQuery(req, res, next) {
     ) {
       return res.status(400).json({
         success: false,
-        message: "question is required."
+        message: "question is required.",
       });
     }
 
@@ -146,7 +260,6 @@ export async function shopQuery(req, res, next) {
        FROM repairs`
     );
 
-
     /*
     |--------------------------------------------------------------------------
     | Overdue Repairs
@@ -167,19 +280,15 @@ export async function shopQuery(req, res, next) {
        FROM repairs
 
        WHERE promised_at IS NOT NULL
-
          AND promised_at < NOW()
-
          AND status NOT IN (
            'Completed',
            'Cancelled'
          )
 
        ORDER BY promised_at ASC
-
        LIMIT 20`
     );
-
 
     /*
     |--------------------------------------------------------------------------
@@ -216,12 +325,10 @@ export async function shopQuery(req, res, next) {
            WHEN 'low' THEN 4
            ELSE 5
          END,
-
          t.due_at ASC
 
        LIMIT 50`
     );
-
 
     /*
     |--------------------------------------------------------------------------
@@ -231,7 +338,6 @@ export async function shopQuery(req, res, next) {
 
     const [workflowStats] = await query(
       `SELECT
-
          COUNT(*) AS total_tasks,
 
          SUM(
@@ -255,7 +361,6 @@ export async function shopQuery(req, res, next) {
        FROM workflow_tasks`
     );
 
-
     /*
     |--------------------------------------------------------------------------
     | Pending Notifications
@@ -277,10 +382,8 @@ export async function shopQuery(req, res, next) {
        WHERE status = 'pending'
 
        ORDER BY notification_id DESC
-
        LIMIT 50`
     );
-
 
     /*
     |--------------------------------------------------------------------------
@@ -303,10 +406,8 @@ export async function shopQuery(req, res, next) {
        WHERE status = 'failed'
 
        ORDER BY notification_id DESC
-
        LIMIT 50`
     );
-
 
     /*
     |--------------------------------------------------------------------------
@@ -316,7 +417,6 @@ export async function shopQuery(req, res, next) {
 
     const [notificationStats] = await query(
       `SELECT
-
          COUNT(*) AS total_notifications,
 
          SUM(
@@ -334,7 +434,6 @@ export async function shopQuery(req, res, next) {
        FROM notifications`
     );
 
-
     /*
     |--------------------------------------------------------------------------
     | Build Shop Data
@@ -342,24 +441,14 @@ export async function shopQuery(req, res, next) {
     */
 
     const shopData = {
-
       repair_metrics: repairStats,
-
       workflow_metrics: workflowStats,
-
       notification_metrics: notificationStats,
-
       overdue_repairs: overdueRepairs,
-
       open_workflow_tasks: workflowTasks,
-
-      pending_notifications:
-        pendingNotifications,
-
-      failed_notifications:
-        failedNotifications
+      pending_notifications: pendingNotifications,
+      failed_notifications: failedNotifications,
     };
-
 
     /*
     |--------------------------------------------------------------------------
@@ -369,9 +458,8 @@ export async function shopQuery(req, res, next) {
 
     const result = await runShopManager({
       question: question.trim(),
-      shopData
+      shopData,
     });
-
 
     /*
     |--------------------------------------------------------------------------
@@ -379,41 +467,36 @@ export async function shopQuery(req, res, next) {
     |--------------------------------------------------------------------------
     */
 
-    res.json({
+    return res.json({
       success: true,
-
       data: {
         question: question.trim(),
 
-        answer:
-          result.answer || "",
+        answer: result.answer || "",
 
-        summary:
-          result.summary || "",
+        summary: result.summary || "",
 
-        priorities:
-          Array.isArray(result.priorities)
-            ? result.priorities
-            : [],
+        priorities: Array.isArray(result.priorities)
+          ? result.priorities
+          : [],
 
-        insights:
-          Array.isArray(result.insights)
-            ? result.insights
-            : [],
+        insights: Array.isArray(result.insights)
+          ? result.insights
+          : [],
 
-        recommendations:
-          Array.isArray(result.recommendations)
-            ? result.recommendations
-            : [],
+        recommendations: Array.isArray(
+          result.recommendations
+        )
+          ? result.recommendations
+          : [],
 
-        warnings:
-          Array.isArray(result.warnings)
-            ? result.warnings
-            : []
-      }
+        warnings: Array.isArray(result.warnings)
+          ? result.warnings
+          : [],
+      },
     });
-
-  } catch (e) {
-    next(e);
+  } catch (error) {
+    next(error);
   }
 }
+

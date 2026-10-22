@@ -1,92 +1,274 @@
+
 import { useEffect, useState } from "react";
 import "./Workflow.css";
 
 const API_BASE = "http://localhost:3777/api";
 
-function Workflow() {
-  const [tasks, setTasks] = useState([]);
-  const [status, setStatus] = useState("open");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+// Default values for the Create Task form.
+const EMPTY_NEW_TASK = {
+  ticket_number: "",
+  task_type: "manual_follow_up",
+  reason: "",
+  priority: "medium",
+  due_at: "",
+};
 
+function Workflow() {
+  // Stores the workflow tasks returned by the backend.
+  const [tasks, setTasks] = useState([]);
+
+  // Controls whether Open or Resolved tasks are displayed.
+  const [status, setStatus] = useState("open");
+
+  // Loading states.
+  const [loading, setLoading] = useState(true);
+  const [checkingWorkflow, setCheckingWorkflow] = useState(false);
+  const [resolving, setResolving] = useState(false);
+  const [creatingTask, setCreatingTask] = useState(false);
+
+  // Error and success messages.
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  // State for resolving an existing task.
   const [selectedTask, setSelectedTask] = useState(null);
   const [note, setNote] = useState("");
-  const [resolving, setResolving] = useState(false);
 
+  // State for creating a new task.
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newTask, setNewTask] = useState(EMPTY_NEW_TASK);
+
+  // Load tasks when the page opens or the selected tab changes.
   useEffect(() => {
-    fetchTasks();
+    fetchTasks(status);
   }, [status]);
 
-  async function fetchTasks() {
+  // Read the JWT token saved during login.
+  function getToken() {
+    return localStorage.getItem("token");
+  }
+
+  // Read an API response and display backend error messages.
+  async function readResponse(response) {
+    let result;
+
+    try {
+      result = await response.json();
+    } catch {
+      throw new Error("The server returned an invalid response.");
+    }
+
+    if (!response.ok || !result.success) {
+      throw new Error(
+        result.message || "The request could not be completed."
+      );
+    }
+
+    return result;
+  }
+
+  // GET: Fetch tasks by status.
+  async function fetchTasks(requestedStatus = status) {
     try {
       setLoading(true);
       setError("");
 
-      const token = localStorage.getItem("token");
+      const token = getToken();
+
+      if (!token) {
+        throw new Error("Please log in to view workflow tasks.");
+      }
 
       const response = await fetch(
-        `${API_BASE}/workflow/actionable?status=${status}`,
+        `${API_BASE}/workflow/actionable?status=${requestedStatus}`,
         {
           method: "GET",
           headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(
-          result.message || "Failed to load workflow tasks."
-        );
-      }
+      const result = await readResponse(response);
 
       setTasks(result.data || []);
     } catch (err) {
       console.error("Workflow fetch error:", err);
+      setTasks([]);
       setError(err.message || "Unable to load workflow tasks.");
     } finally {
       setLoading(false);
     }
   }
 
+  // POST: Run automatic workflow checks.
+  async function handleRunWorkflowCheck() {
+    try {
+      setCheckingWorkflow(true);
+      setError("");
+      setSuccess("");
+
+      const token = getToken();
+
+      if (!token) {
+        throw new Error("Please log in to run workflow checks.");
+      }
+
+      const response = await fetch(`${API_BASE}/workflow/check`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const result = await readResponse(response);
+      const workflowResult = result.data || {};
+
+      // Refresh whichever tab the user is currently viewing.
+      await fetchTasks(status);
+
+      setSuccess(
+        `Workflow check completed. New tasks created: ${
+          workflowResult.created ?? 0
+        }.`
+      );
+    } catch (err) {
+      console.error("Workflow check error:", err);
+      setError(err.message || "Unable to run workflow checks.");
+    } finally {
+      setCheckingWorkflow(false);
+    }
+  }
+
+  // Update the Create Task form whenever a field changes.
+  function handleNewTaskChange(event) {
+    const { name, value } = event.target;
+
+    setNewTask((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+  }
+
+  // POST: Create an open task using its repair ticket number.
+  async function handleCreateTask(event) {
+    event.preventDefault();
+
+    try {
+      setCreatingTask(true);
+      setError("");
+      setSuccess("");
+
+      const token = getToken();
+
+      if (!token) {
+        throw new Error("Please log in to create a workflow task.");
+      }
+
+      // Validate the ticket number.
+      const ticketNumber = newTask.ticket_number.trim();
+
+      if (!ticketNumber) {
+        throw new Error("Please enter the repair ticket number.");
+      }
+
+      // Validate the task type.
+      const taskType = newTask.task_type.trim();
+
+      if (!taskType) {
+        throw new Error("Please enter a task type.");
+      }
+
+      // Validate the reason.
+      const reason = newTask.reason.trim();
+
+      if (!reason) {
+        throw new Error("Please enter a reason for the task.");
+      }
+
+      // Send ticket_number instead of repair_id.
+      // The backend will find the corresponding repair_id.
+      const payload = {
+        ticket_number: ticketNumber,
+        task_type: taskType,
+        reason,
+        priority: newTask.priority,
+
+        // Convert the datetime-local value to MySQL datetime format.
+        // Example: 2026-10-20T14:30 becomes 2026-10-20 14:30:00.
+        due_at: newTask.due_at
+          ? `${newTask.due_at.replace("T", " ")}:00`
+          : null,
+      };
+
+      const response = await fetch(`${API_BASE}/workflow/tasks`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await readResponse(response);
+
+      // Close the form and clear its values.
+      setShowCreateModal(false);
+      setNewTask({ ...EMPTY_NEW_TASK });
+
+      // Display a success message.
+      setSuccess(
+        result.message ||
+          `Task created successfully for ${ticketNumber}.`
+      );
+
+      // Switch to the Open tab and load the new task.
+      setStatus("open");
+      await fetchTasks("open");
+    } catch (err) {
+      console.error("Create workflow task error:", err);
+      setError(err.message || "Unable to create workflow task.");
+    } finally {
+      setCreatingTask(false);
+    }
+  }
+
+  // POST: Resolve the selected task.
   async function handleResolve() {
     if (!selectedTask) return;
 
     try {
       setResolving(true);
       setError("");
+      setSuccess("");
 
-      const token = localStorage.getItem("token");
+      const token = getToken();
+
+      if (!token) {
+        throw new Error("Please log in to resolve workflow tasks.");
+      }
 
       const response = await fetch(
-        `${API_BASE}/workflow/actionable/${selectedTask.workflow_task_id}/resolve`,
+        `${API_BASE}/workflow/tasks/${selectedTask.workflow_task_id}/resolve`,
         {
           method: "POST",
           headers: {
+            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
           },
-          body: JSON.stringify({
-            note
-          })
+          body: JSON.stringify({ note }),
         }
       );
 
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(
-          result.message || "Failed to resolve workflow task."
-        );
-      }
+      await readResponse(response);
 
       setSelectedTask(null);
       setNote("");
+      setSuccess("Task marked as resolved successfully.");
 
-      await fetchTasks();
+      // Refresh the currently selected tab.
+      await fetchTasks(status);
     } catch (err) {
       console.error("Resolve task error:", err);
       setError(err.message || "Unable to resolve task.");
@@ -95,6 +277,7 @@ function Workflow() {
     }
   }
 
+  // Choose a CSS class according to task priority.
   function getPriorityClass(priority) {
     switch (priority?.toLowerCase()) {
       case "urgent":
@@ -110,6 +293,7 @@ function Workflow() {
     }
   }
 
+  // Choose a CSS class according to task status.
   function getStatusClass(taskStatus) {
     switch (taskStatus?.toLowerCase()) {
       case "open":
@@ -123,6 +307,7 @@ function Workflow() {
     }
   }
 
+  // Convert manual_follow_up into Manual Follow Up.
   function formatTaskType(type) {
     if (!type) return "—";
 
@@ -131,6 +316,7 @@ function Workflow() {
       .replace(/\b\w/g, (letter) => letter.toUpperCase());
   }
 
+  // Format dates for display.
   function formatDate(date) {
     if (!date) return "—";
 
@@ -143,19 +329,21 @@ function Workflow() {
     return parsedDate.toLocaleString();
   }
 
-  function isOverdue(date) {
-    if (!date) return false;
+  // Check whether an unresolved task is past its due date.
+  function isOverdue(date, taskStatus) {
+    if (!date || taskStatus === "resolved") return false;
 
     const dueDate = new Date(date);
 
-    return !Number.isNaN(dueDate.getTime()) &&
-      dueDate < new Date() &&
-      status !== "resolved";
+    return (
+      !Number.isNaN(dueDate.getTime()) &&
+      dueDate < new Date()
+    );
   }
 
   return (
     <div className="workflow-page">
-
+      {/* Page title and action buttons */}
       <div className="workflow-header">
         <div>
           <h1>Workflow</h1>
@@ -164,19 +352,48 @@ function Workflow() {
           </p>
         </div>
 
-        <button
-          className="refresh-button"
-          onClick={fetchTasks}
-          disabled={loading}
-        >
-          {loading ? "Refreshing..." : "Refresh"}
-        </button>
+        <div className="workflow-header-actions">
+          <button
+            type="button"
+            className="create-task-button"
+            onClick={() => {
+              setError("");
+              setSuccess("");
+              setNewTask({ ...EMPTY_NEW_TASK });
+              setShowCreateModal(true);
+            }}
+            disabled={creatingTask}
+          >
+            + Create Task
+          </button>
+
+          <button
+            type="button"
+            className="run-workflow-button"
+            onClick={handleRunWorkflowCheck}
+            disabled={checkingWorkflow || loading}
+          >
+            {checkingWorkflow
+              ? "Checking Repairs..."
+              : "Workflow Check"}
+          </button>
+
+          <button
+            type="button"
+            className="refresh-button"
+            onClick={() => fetchTasks(status)}
+            disabled={loading || checkingWorkflow}
+          >
+            {loading ? "Refreshing..." : "Refresh"}
+          </button>
+        </div>
       </div>
 
+      {/* Open and Resolved tabs */}
       <div className="workflow-toolbar">
-
         <div className="status-tabs">
           <button
+            type="button"
             className={status === "open" ? "active" : ""}
             onClick={() => setStatus("open")}
           >
@@ -184,6 +401,7 @@ function Workflow() {
           </button>
 
           <button
+            type="button"
             className={status === "resolved" ? "active" : ""}
             onClick={() => setStatus("resolved")}
           >
@@ -196,16 +414,28 @@ function Workflow() {
         </div>
       </div>
 
+      {/* Display error messages */}
       {error && (
         <div className="workflow-error">
           <span>{error}</span>
 
-          <button onClick={fetchTasks}>
+          <button
+            type="button"
+            onClick={() => fetchTasks(status)}
+          >
             Try Again
           </button>
         </div>
       )}
 
+      {/* Display success messages */}
+      {success && (
+        <div className="workflow-success">
+          {success}
+        </div>
+      )}
+
+      {/* Loading state, empty state, or task table */}
       {loading ? (
         <div className="workflow-loading">
           <div className="spinner"></div>
@@ -223,7 +453,7 @@ function Workflow() {
 
           <p>
             {status === "open"
-              ? "There are currently no actionable workflow tasks."
+              ? "There are currently no open tasks. Create a task or run a workflow check."
               : "No workflow tasks have been resolved yet."}
           </p>
         </div>
@@ -233,7 +463,7 @@ function Workflow() {
             <thead>
               <tr>
                 <th>Task</th>
-                <th>Repair</th>
+                <th>Repair Ticket</th>
                 <th>Priority</th>
                 <th>Reason</th>
                 <th>Assigned To</th>
@@ -246,7 +476,6 @@ function Workflow() {
             <tbody>
               {tasks.map((task) => (
                 <tr key={task.workflow_task_id}>
-
                   <td>
                     <div className="task-info">
                       <strong>
@@ -260,11 +489,9 @@ function Workflow() {
                   </td>
 
                   <td>
-                    {task.repair_id ? (
+                    {task.ticket_number ? (
                       <div className="repair-info">
-                        <strong>
-                          {task.ticket_number || "Repair"}
-                        </strong>
+                        <strong>{task.ticket_number}</strong>
 
                         <span>
                           Repair #{task.repair_id}
@@ -276,7 +503,9 @@ function Workflow() {
                   </td>
 
                   <td>
-                    <span className={getPriorityClass(task.priority)}>
+                    <span
+                      className={getPriorityClass(task.priority)}
+                    >
                       {task.priority || "normal"}
                     </span>
                   </td>
@@ -302,7 +531,7 @@ function Workflow() {
                   <td>
                     <span
                       className={
-                        isOverdue(task.due_at)
+                        isOverdue(task.due_at, task.status)
                           ? "due-date overdue"
                           : "due-date"
                       }
@@ -320,10 +549,12 @@ function Workflow() {
                   <td>
                     {task.status === "open" ? (
                       <button
+                        type="button"
                         className="resolve-button"
                         onClick={() => {
                           setSelectedTask(task);
                           setNote("");
+                          setError("");
                         }}
                       >
                         Resolve
@@ -334,7 +565,6 @@ function Workflow() {
                       </span>
                     )}
                   </td>
-
                 </tr>
               ))}
             </tbody>
@@ -342,38 +572,177 @@ function Workflow() {
         </div>
       )}
 
-      {selectedTask && (
+      {/* Create Task modal */}
+      {showCreateModal && (
         <div className="modal-overlay">
-          <div className="resolve-modal">
-
+          <form
+            className="resolve-modal create-task-modal"
+            onSubmit={handleCreateTask}
+          >
             <div className="modal-header">
               <div>
-                <h2>Resolve Workflow Task</h2>
-
+                <h2>Create Workflow Task</h2>
                 <p>
-                  Task #{selectedTask.workflow_task_id}
+                  Enter a repair ticket number to create an open task.
                 </p>
               </div>
 
               <button
+                type="button"
+                className="close-button"
+                onClick={() => setShowCreateModal(false)}
+                disabled={creatingTask}
+                aria-label="Close create task form"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="create-task-form">
+              {/* Ticket number replaces the Repair ID field */}
+              <div className="note-field">
+                <label htmlFor="ticket_number">
+                  Repair Ticket Number *
+                </label>
+
+                <input
+                  id="ticket_number"
+                  name="ticket_number"
+                  type="text"
+                  value={newTask.ticket_number}
+                  onChange={handleNewTaskChange}
+                  placeholder="e.g. RF-1792301440847-9198"
+                  required
+                  disabled={creatingTask}
+                />
+
+                <small>
+                  Enter the ticket number shown on the Repairs page.
+                  You do not need to know the database Repair ID.
+                </small>
+              </div>
+
+              <div className="note-field">
+                <label htmlFor="task_type">Task Type *</label>
+
+                <input
+                  id="task_type"
+                  name="task_type"
+                  type="text"
+                  value={newTask.task_type}
+                  onChange={handleNewTaskChange}
+                  placeholder="e.g. manual_follow_up"
+                  required
+                  disabled={creatingTask}
+                />
+              </div>
+
+              <div className="note-field">
+                <label htmlFor="reason">Reason *</label>
+
+                <textarea
+                  id="reason"
+                  name="reason"
+                  value={newTask.reason}
+                  onChange={handleNewTaskChange}
+                  placeholder="Explain what needs to be done..."
+                  rows="3"
+                  required
+                  disabled={creatingTask}
+                />
+              </div>
+
+              <div className="note-field">
+                <label htmlFor="priority">Priority *</label>
+
+                <select
+                  id="priority"
+                  name="priority"
+                  value={newTask.priority}
+                  onChange={handleNewTaskChange}
+                  required
+                  disabled={creatingTask}
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                  <option value="urgent">Urgent</option>
+                </select>
+              </div>
+
+              <div className="note-field">
+                <label htmlFor="due_at">
+                  Due Date (optional)
+                </label>
+
+                <input
+                  id="due_at"
+                  name="due_at"
+                  type="datetime-local"
+                  value={newTask.due_at}
+                  onChange={handleNewTaskChange}
+                  disabled={creatingTask}
+                />
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="cancel-button"
+                onClick={() => setShowCreateModal(false)}
+                disabled={creatingTask}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="submit"
+                className="confirm-resolve-button"
+                disabled={creatingTask}
+              >
+                {creatingTask
+                  ? "Creating Task..."
+                  : "Create Open Task"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Resolve Task modal */}
+      {selectedTask && (
+        <div className="modal-overlay">
+          <div className="resolve-modal">
+            <div className="modal-header">
+              <div>
+                <h2>Resolve Workflow Task</h2>
+                <p>Task #{selectedTask.workflow_task_id}</p>
+              </div>
+
+              <button
+                type="button"
                 className="close-button"
                 onClick={() => setSelectedTask(null)}
+                disabled={resolving}
+                aria-label="Close resolve form"
               >
                 ×
               </button>
             </div>
 
             <div className="modal-task-details">
-
               <div className="detail-item">
                 <span>Task</span>
+
                 <strong>
                   {formatTaskType(selectedTask.task_type)}
                 </strong>
               </div>
 
               <div className="detail-item">
-                <span>Repair</span>
+                <span>Repair Ticket</span>
+
                 <strong>
                   {selectedTask.ticket_number ||
                     `Repair #${selectedTask.repair_id}`}
@@ -382,11 +751,11 @@ function Workflow() {
 
               <div className="detail-item full">
                 <span>Reason</span>
+
                 <strong>
                   {selectedTask.reason || "No reason provided"}
                 </strong>
               </div>
-
             </div>
 
             <div className="note-field">
@@ -397,15 +766,16 @@ function Workflow() {
               <textarea
                 id="resolution-note"
                 value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="Add a note about how this task was resolved..."
+                onChange={(event) => setNote(event.target.value)}
+                placeholder="Explain how this task was resolved..."
                 rows="4"
+                disabled={resolving}
               />
             </div>
 
             <div className="modal-actions">
-
               <button
+                type="button"
                 className="cancel-button"
                 onClick={() => setSelectedTask(null)}
                 disabled={resolving}
@@ -414,6 +784,7 @@ function Workflow() {
               </button>
 
               <button
+                type="button"
                 className="confirm-resolve-button"
                 onClick={handleResolve}
                 disabled={resolving}
@@ -422,13 +793,10 @@ function Workflow() {
                   ? "Resolving..."
                   : "Mark as Resolved"}
               </button>
-
             </div>
-
           </div>
         </div>
       )}
-
     </div>
   );
 }

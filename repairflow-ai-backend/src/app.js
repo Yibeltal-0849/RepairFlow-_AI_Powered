@@ -1,7 +1,3 @@
-// 
-
-
-
 
 import express from "express";
 import cors from "cors";
@@ -25,6 +21,10 @@ import {
   notFound,
   errorHandler
 } from "./middleware/errors.js";
+
+import telegramWebhookRoutes
+  from "./routes/telegramWebhook.routes.js";
+
 
 const app = express();
 
@@ -150,8 +150,10 @@ app.use(
   workflowRoutes
 );
 
-
-// -----------------------------
+app.use(
+  "/api/telegram/webhook",
+  telegramWebhookRoutes
+);
 // 404 Handler
 // -----------------------------
 
