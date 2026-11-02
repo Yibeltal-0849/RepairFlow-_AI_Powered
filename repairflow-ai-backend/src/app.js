@@ -1,9 +1,22 @@
 
+import { setDefaultResultOrder } from "node:dns";
+
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 
+// -----------------------------
+// DNS Configuration
+// -----------------------------
+
+// Prefer IPv4 when resolving hostnames.
+// This addresses the connection behavior observed in the Gemini tests.
+setDefaultResultOrder("ipv4first");
+
+// -----------------------------
 // Routes
+// -----------------------------
+
 import authRoutes from "./routes/auth.routes.js";
 import customerRoutes from "./routes/customers.routes.js";
 import repairRoutes from "./routes/repairs.routes.js";
@@ -16,7 +29,10 @@ import integrationsRoutes from "./routes/integrations.routes.js";
 import notificationsRoutes from "./routes/notifications.routes.js";
 import workflowRoutes from "./routes/workflow.routes.js";
 
-// Error middleware
+// -----------------------------
+// Error Middleware
+// -----------------------------
+
 import {
   notFound,
   errorHandler
@@ -25,6 +41,9 @@ import {
 import telegramWebhookRoutes
   from "./routes/telegramWebhook.routes.js";
 
+// -----------------------------
+// Express Application
+// -----------------------------
 
 const app = express();
 
@@ -33,7 +52,6 @@ const app = express();
 // -----------------------------
 
 app.use(helmet());
-
 
 // -----------------------------
 // CORS
@@ -49,7 +67,6 @@ app.use(
   })
 );
 
-
 // -----------------------------
 // Body Parser
 // -----------------------------
@@ -60,111 +77,73 @@ app.use(
   })
 );
 
-
 // -----------------------------
 // Health Check
 // -----------------------------
 
-app.get(
-  "/api/health",
-  (req, res) => {
-    res.json({
-      success: true,
-      message: "REPAIRFLOW AI API is running."
-    });
-  }
-);
-
+app.get("/api/health", (req, res) => {
+  res.json({
+    success: true,
+    message: "REPAIRFLOW AI API is running."
+  });
+});
 
 // -----------------------------
 // API Routes
 // -----------------------------
 
-app.use(
-  "/api/auth",
-  authRoutes
-);
+app.use("/api/auth", authRoutes);
 
-app.use(
-  "/api/customers",
-  customerRoutes
-);
+app.use("/api/customers", customerRoutes);
 
-app.use(
-  "/api/repairs",
-  repairRoutes
-);
+app.use("/api/repairs", repairRoutes);
 
-app.use(
-  "/api/products",
-  productRoutes
-);
+app.use("/api/products", productRoutes);
 
-app.use(
-  "/api/dashboard",
-  dashboardRoutes
-);
-
+app.use("/api/dashboard", dashboardRoutes);
 
 // -----------------------------
 // AI / Diagnosis
 // -----------------------------
 
-app.use(
-  "/api/ai",
-  aiRoutes
-);
+app.use("/api/ai", aiRoutes);
 
-app.use(
-  "/api/diagnoses",
-  diagnosisRoutes
-);
-
+app.use("/api/diagnoses", diagnosisRoutes);
 
 // -----------------------------
 // External Integrations
 // -----------------------------
 
-app.use(
-  "/api/integrations",
-  integrationsRoutes
-);
-
+app.use("/api/integrations", integrationsRoutes);
 
 // -----------------------------
 // Notifications
 // -----------------------------
 
-app.use(
-  "/api/notifications",
-  notificationsRoutes
-);
-
+app.use("/api/notifications", notificationsRoutes);
 
 // -----------------------------
 // Workflow
 // -----------------------------
 
-app.use(
-  "/api/workflow",
-  workflowRoutes
-);
+app.use("/api/workflow", workflowRoutes);
 
-app.use(
-  "/api/telegram/webhook",
-  telegramWebhookRoutes
-);
+// -----------------------------
+// Telegram Webhook
+// -----------------------------
+
+app.use("/api/telegram/webhook", telegramWebhookRoutes);
+
+// -----------------------------
 // 404 Handler
 // -----------------------------
 
 app.use(notFound);
-
 
 // -----------------------------
 // Global Error Handler
 // -----------------------------
 
 app.use(errorHandler);
-
 
 export default app;

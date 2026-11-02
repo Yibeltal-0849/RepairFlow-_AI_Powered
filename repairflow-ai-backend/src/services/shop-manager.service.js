@@ -9,8 +9,8 @@ export async function runShopManager({
   }
 
   const models = [
-    process.env.GEMINI_MODEL || "gemini-3.8-flash",
-    process.env.GEMINI_FALLBACK_MODEL || "gemini-3.6-flash",
+    // process.env.GEMINI_MODEL || "gemini-3.8-flash",
+    // process.env.GEMINI_FALLBACK_MODEL || "gemini-3.6-flash",
     process.env.GEMINI_LITE_MODEL || "gemini-3.5-flash-lite"
   ];
 

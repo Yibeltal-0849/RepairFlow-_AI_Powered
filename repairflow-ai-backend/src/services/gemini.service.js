@@ -2,7 +2,7 @@ const GEMINI_API_URL =
   "https://generativelanguage.googleapis.com/v1beta/models";
 
 const DEFAULT_MODEL =
-  process.env.GEMINI_MODEL || "gemini-3.8-flash";
+  process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
 
 
 const diagnosisSchema = {
@@ -247,13 +247,13 @@ Always include limitations.
 REPAIR INFORMATION
 
 Device brand:
-${repair.device_brand}
+${repair.device_brand || "Not provided"}
 
 Device model:
-${repair.device_model}
+${repair.device_model || "Not provided"}
 
 Reported issue:
-${repair.reported_issue}
+${repair.reported_issue || "Not provided"}
 
 Additional symptoms:
 ${symptoms || "None provided"}
@@ -273,44 +273,83 @@ ${JSON.stringify(diagnosticTests)}
 Return ONLY the structured JSON requested by the schema.
 `;
 
+  const url =
+    `${GEMINI_API_URL}/${encodeURIComponent(DEFAULT_MODEL)}` +
+    `:generateContent?key=${encodeURIComponent(process.env.GEMINI_API_KEY)}`;
+
   const controller = new AbortController();
+
+  // Allow more time for a detailed repair diagnosis.
+  const timeoutMs = 110000;
+
+  const startedAt = Date.now();
+  let stage = "preparing request";
 
   const timeout = setTimeout(() => {
     controller.abort();
-  }, 30000);
+  }, timeoutMs);
 
   try {
-    const response = await fetch(
-      `${GEMINI_API_URL}/${encodeURIComponent(DEFAULT_MODEL)}:generateContent?key=${encodeURIComponent(process.env.GEMINI_API_KEY)}`,
-      {
-        method: "POST",
+    console.log(`[Gemini] Starting diagnosis using ${DEFAULT_MODEL}`);
 
-        headers: {
-          "Content-Type": "application/json"
-        },
+    stage = "waiting for Gemini response";
 
-        body: JSON.stringify({
-          contents: [
-            {
-              role: "user",
-              parts: [
-                {
-                  text: prompt
-                }
-              ]
-            }
-          ],
+const requestBody = {
+  contents: [
+    {
+      role: "user",
+      parts: [
+        {
+          text: prompt
+        }
+      ]
+    }
+  ],
+  generationConfig: {
+    temperature: 0.2,
+    responseMimeType: "application/json",
+    responseSchema: diagnosisSchema
+  }
+};
 
-          generationConfig: {
-            temperature: 0.2,
-            responseMimeType: "application/json",
-            responseSchema: diagnosisSchema
-          }
-        }),
+let response;
 
-        signal: controller.signal
-      }
+const maxAttempts = 3;
+
+for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+  console.log(
+    `[Gemini] Request attempt ${attempt}/${maxAttempts}`
+  );
+
+  response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(requestBody),
+    signal: controller.signal
+  });
+
+  if (response.status !== 503 || attempt === maxAttempts) {
+    break;
+  }
+
+  // Wait 2 seconds before attempt 2, then 4 seconds before attempt 3.
+  const delayMs = 2000 * (2 ** (attempt - 1));
+
+  console.log(
+    `[Gemini] HTTP 503. Retrying in ${delayMs / 1000} seconds.`
+  );
+
+  await new Promise(resolve => setTimeout(resolve, delayMs));
+}
+
+    console.log(
+      `[Gemini] HTTP ${response.status} received after ` +
+      `${((Date.now() - startedAt) / 1000).toFixed(1)} seconds`
     );
+
+    stage = "reading Gemini response";
 
     const responseText = await response.text();
 
@@ -331,22 +370,49 @@ Return ONLY the structured JSON requested by the schema.
       );
     }
 
+    stage = "extracting generated diagnosis";
+
     const text = extractGeminiText(data);
+
+    stage = "validating diagnosis JSON";
 
     let parsed;
 
     try {
       parsed = JSON.parse(text);
     } catch {
+      throw new Error("Gemini returned malformed diagnosis JSON.");
+    }
+
+    const result = validateDiagnosisResult(parsed);
+
+    console.log(
+      `[Gemini] Diagnosis completed successfully in ` +
+      `${((Date.now() - startedAt) / 1000).toFixed(1)} seconds`
+    );
+
+    return result;
+  } catch (error) {
+    const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+
+    if (error.name === "AbortError") {
+      console.error(
+        `[Gemini] Timed out after ${elapsed} seconds while ${stage}.`
+      );
+
       throw new Error(
-        "Gemini returned malformed diagnosis JSON."
+        `Gemini request timed out after ${timeoutMs / 1000} seconds ` +
+        `while ${stage}.`
       );
     }
 
-    return validateDiagnosisResult(parsed);
-  } catch (error) {
-    if (error.name === "AbortError") {
-      throw new Error("Gemini request timed out.");
+    console.error(
+      `[Gemini] Failed after ${elapsed} seconds while ${stage}:`,
+      error.message
+    );
+
+    if (error.cause) {
+      console.error("[Gemini] Underlying cause:", error.cause);
     }
 
     throw error;

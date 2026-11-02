@@ -35,9 +35,10 @@
 
 .diagnosis-header p {
   margin: 7px 0 0;
-  color: #64748b;
-  font-size: 14px;
+ color: #0f172a;
+  font-size: 15px;
   line-height: 1.5;
+  font-weight: 600;
 }
 
 
@@ -544,7 +545,7 @@
 .suggestion-value {
   color: #475569;
 
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.5;
 
   white-space: pre-wrap;
@@ -556,7 +557,7 @@
 
   color: #475569;
 
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.7;
 }
 
@@ -566,7 +567,7 @@
   color: #475569;
 
   font-family: inherit;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.6;
 
   white-space: pre-wrap;
@@ -587,7 +588,7 @@
 
   color: #92400e;
 
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.6;
 
   white-space: pre-wrap;
@@ -675,9 +676,9 @@
 .review-header p {
   margin: 5px 0 0;
 
-  color: #64748b;
+  color: #0f172a;
 
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.5;
 }
 
@@ -749,7 +750,7 @@
 }
 
 .form-group small {
-  color: #94a3b8;
+  color: #0f172a;
 
   font-size: 9px;
 }

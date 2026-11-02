@@ -498,6 +498,8 @@
 
   white-space: nowrap;
   text-overflow: ellipsis;
+      font-size: 14px;
+    font-weight: 600;
 }
 
 
